@@ -1,8 +1,12 @@
 services:
   leadgen-app:
     build: ./leadgen-app
-    ports:
-      - '3000:3000'
+    # No host port binding: Coolify's proxy routes your assigned domain to
+    # the container on port 3000 internally. This avoids conflicts with any
+    # other process already bound to host port 3000 (e.g. the previous
+    # lead-hunter deployment).
+    expose:
+      - '3000'
     volumes:
       - './leadgen-app/data:/app/data'
     environment:
