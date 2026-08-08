@@ -46,8 +46,11 @@ const DENIED_TOOLS = {
 };
 
 // OPENCODE_MODEL is "provider/model" (e.g. "groq/openai/gpt-oss-120b" or
-// "deepseek/deepseek-v4-flash"). Defaults to the same Groq model the app
-// already uses directly.
+// "deepseek/deepseek-v4-flash"). Defaults to deepseek/deepseek-v4-flash so
+// the opencode server serves as the fallback provider once Groq's daily
+// token budget is exhausted. IMPORTANT: the opencode container must have
+// the matching API key (DEEPSEEK_API_KEY here) set in ITS OWN environment -
+// a key configured only on the leadgen-app service never reaches opencode.
 function resolveModel() {
   const raw = (process.env.OPENCODE_MODEL || "").trim();
   if (raw) {
@@ -56,7 +59,7 @@ function resolveModel() {
       return { providerID: raw.slice(0, slash), modelID: raw.slice(slash + 1) };
     }
   }
-  return { providerID: "groq", modelID: "openai/gpt-oss-120b" };
+  return { providerID: "deepseek", modelID: "deepseek-v4-flash" };
 }
 
 function isConfigured() {
@@ -149,7 +152,18 @@ async function generateText(prompt, { jsonMode, timeoutMs } = {}) {
       const texts = (data?.parts || [])
         .filter((p) => p.type === "text" && typeof p.text === "string" && p.text.trim())
         .map((p) => p.text.trim());
-      if (texts.length === 0) return { ok: false, error: "OpenCode returned an empty response." };
+      if (texts.length === 0) {
+        // Typed provider failures (rate limit, insufficient balance, etc.)
+        // come back as a 200 with the assistant message carrying the real
+        // reason in `error.message` rather than as an HTTP error status.
+        const providerMessage = data?.error?.message || data?.error;
+        return {
+          ok: false,
+          error: typeof providerMessage === "string" && providerMessage.trim()
+            ? providerMessage
+            : "OpenCode returned an empty response.",
+        };
+      }
       return { ok: true, text: texts.join("\n") };
     } finally {
       // Clean up the session regardless of the outcome so repeated calls

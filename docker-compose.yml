@@ -17,7 +17,7 @@ services:
       - DAILY_LEAD_CAP=100
       - 'OPENCODE_URL=http://opencode:4096'
       - 'OPENCODE_SERVER_PASSWORD=${OPENCODE_SERVER_PASSWORD}'
-      - 'OPENCODE_MODEL=${OPENCODE_MODEL:-groq/openai/gpt-oss-120b}'
+      - 'OPENCODE_MODEL=${OPENCODE_MODEL:-deepseek/deepseek-v4-flash}'
     depends_on:
       - scraper
       - opencode
@@ -32,10 +32,14 @@ services:
     restart: unless-stopped
 
   # OpenCode agent server (https://opencode.ai) - headless HTTP API that
-  # the leadgen-app uses as an AI provider. It holds its own model keys:
-  # pass the same Groq/DeepSeek keys you already use, and it will run the
-  # chosen model (see OPENCODE_MODEL on leadgen-app) for business analysis
-  # and outreach content generation. No keys are ever stored in the app.
+  # the leadgen-app uses as an AI provider. It runs the model named by
+  # OPENCODE_MODEL on leadgen-app (default deepseek/deepseek-v4-flash so it
+  # serves as the fallback once Groq's daily token budget is spent). The
+  # model's API key must be present HERE, in THIS container's environment:
+  # a key set only on leadgen-app does NOT reach the opencode process. So
+  # DEEPSEEK_API_KEY (for the default model) - or the key for whichever
+  # provider OPENCODE_MODEL names - must be configured on this service in
+  # Coolify too. No keys are ever stored in the app.
   opencode:
     image: ghcr.io/anomalyco/opencode:latest
     command: serve --hostname 0.0.0.0 --port 4096
