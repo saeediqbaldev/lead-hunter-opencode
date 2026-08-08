@@ -36,7 +36,9 @@ Node app on every redeploy — no more chasing random container names.
    - `OPENCODE_SERVER_PASSWORD` — any long random string; must be set on
      both `leadgen-app` and `opencode` (the compose file wires it to both).
    - `OPENCODE_MODEL` — optional; `provider/model` the opencode server runs
-     for app requests (default `groq/openai/gpt-oss-120b`).
+      for app requests (default `deepseek/deepseek-v4-flash`, so opencode
+      acts as the 4th provider once Groq's daily budget is spent). The
+      model's API key must be set on the **opencode** service env too.
 7. **Deploy.**
 
 ### About the OpenCode agent (optional)
