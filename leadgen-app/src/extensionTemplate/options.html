@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Xeven Lead MailTracker Settings</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #12100e;
+      color: #f2ede6;
+      padding: 32px;
+      max-width: 420px;
+    }
+    h1 { font-size: 18px; margin-bottom: 4px; }
+    p.sub { color: #9a9186; font-size: 13px; margin-top: 0; }
+    label { display: block; margin-top: 16px; font-size: 12px; color: #9a9186; }
+    input {
+      display: block;
+      width: 100%;
+      margin-top: 6px;
+      padding: 8px 10px;
+      border: 1px solid #33302b;
+      background: #1b1815;
+      color: #f2ede6;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 20px;
+      padding: 9px 16px;
+      background: #ff6a3d;
+      color: #1a1310;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    #status { margin-top: 12px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <h1>Xeven Lead MailTracker</h1>
+  <p class="sub">Pre-configured for your account - you shouldn't need to change these unless you've redeployed or rotated your key.</p>
+
+  <label>
+    Backend URL
+    <input type="text" id="backend-url" placeholder="https://leads.yourdomain.com" />
+  </label>
+
+  <label>
+    API key
+    <input type="text" id="api-key" placeholder="your Contacted tracker API key" />
+  </label>
+
+  <button id="save-btn">Save</button>
+  <p id="status"></p>
+
+  <script src="options.js"></script>
+</body>
+</html>

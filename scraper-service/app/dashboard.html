@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Contact Scraper — Control Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F6F7F9; --surface:#FFFFFF; --border:#E3E6EB;
+    --text:#14171C; --text-soft:#6B7280;
+    --accent:#3454D1; --accent-soft:#EAEEFC;
+    --ok:#1F9D55; --ok-soft:#E7F6ED;
+    --warn:#B45309; --warn-soft:#FBEDD9;
+    --info:#2B7A9E; --info-soft:#E4F1F5;
+    --danger:#C0392B; --danger-soft:#FBEAE8;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;}
+  .mono{font-family:'IBM Plex Mono',ui-monospace,SFMono-Regular,monospace;}
+  a{color:var(--accent);}
+  .layout{max-width:1320px;margin:0 auto;padding:24px 20px 80px;display:grid;grid-template-columns:288px 1fr;gap:20px;align-items:start;}
+
+  header.top{grid-column:1/-1;margin-bottom:4px;}
+  header.top h1{font-size:20px;font-weight:700;margin:0 0 4px;letter-spacing:-0.01em;}
+  header.top p{margin:0;color:var(--text-soft);font-size:13px;}
+
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 18px;}
+  .panel + .panel{margin-top:20px;}
+  .panel h2{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-soft);margin:0 0 14px;font-weight:600;}
+
+  /* ---------- sidebar ---------- */
+  aside.sidebar{position:sticky;top:20px;display:flex;flex-direction:column;}
+
+  .bar{display:flex;height:9px;border-radius:6px;overflow:hidden;background:var(--border);margin-bottom:14px;}
+  .bar div{height:100%;transition:width .4s ease;}
+  .seg-done{background:var(--ok);} .seg-scraping{background:var(--info);}
+  .seg-failed{background:var(--danger);} .seg-pending{background:var(--border);}
+
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+  .stat-card{border:1px solid var(--border);border-radius:8px;padding:9px 10px;}
+  .stat-card .n{font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:600;line-height:1.1;}
+  .stat-card .l{font-size:10.5px;color:var(--text-soft);margin-top:2px;display:flex;align-items:center;gap:5px;}
+  .dot{width:7px;height:7px;border-radius:50%;flex:none;}
+  .dot.done{background:var(--ok);} .dot.scraping{background:var(--info);}
+  .dot.failed{background:var(--danger);} .dot.pending{background:#C7CBD3;}
+  .dot.requests{background:var(--accent);}
+
+  .safety-note{
+    font-size:11.5px;color:var(--text-soft);background:var(--bg);border:1px solid var(--border);
+    border-radius:8px;padding:9px 10px;line-height:1.5;margin-bottom:16px;
+  }
+  .safety-note b{color:var(--text);font-family:'IBM Plex Mono',monospace;}
+
+  .action{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+  .action label{font-size:11.5px;color:var(--text-soft);}
+  .action .row{display:flex;gap:8px;align-items:center;}
+  .action input[type=file]{font-size:12px;width:100%;}
+  .action input[type=number],.action input[type=text]{
+    flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:8px;
+    font-family:'IBM Plex Mono',monospace;font-size:12.5px;min-width:0;
+  }
+
+  button{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:background .15s ease;white-space:nowrap;}
+  button:hover{background:#2941A8;}
+  button:disabled{background:#C7CCDB;cursor:not-allowed;}
+  button.secondary{background:var(--surface);color:var(--accent);border:1px solid var(--accent);}
+  button.secondary:hover{background:var(--accent-soft);}
+  button.danger{background:var(--surface);color:var(--danger);border:1px solid var(--danger);}
+  button.danger:hover{background:var(--danger-soft);}
+  button.stop{background:var(--danger);}
+  button.stop:hover{background:#9E2C20;}
+  button.full{width:100%;}
+  button:focus-visible, input:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+  .msg{font-size:12.5px;padding:9px 10px;border-radius:8px;margin-top:4px;display:none;}
+  .msg.show{display:block;}
+  .msg.ok{background:var(--ok-soft);color:#146134;}
+  .msg.err{background:var(--danger-soft);color:#8C231A;}
+  .job-hint{font-size:11.5px;color:var(--info);margin-top:6px;min-height:14px;}
+
+  /* ---------- main column ---------- */
+  main{min-width:0;}
+  .panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:12px;flex-wrap:wrap;}
+  .panel-head h2{margin:0;}
+  .breadcrumb{font-size:12.5px;color:var(--text-soft);}
+  .breadcrumb a{cursor:pointer;}
+
+  .save-form{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;}
+  .save-form input[type=text]{padding:7px 9px;border:1px solid var(--border);border-radius:7px;font-size:12.5px;}
+  .save-form input#saveName{flex:1;min-width:160px;}
+  .save-form input#saveNiche{width:150px;}
+
+  .table-controls{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+  .table-controls .right{display:flex;gap:8px;flex-wrap:wrap;}
+  input#filterInput{padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;min-width:200px;}
+
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  th{text-align:left;padding:8px 10px;color:var(--text-soft);font-weight:600;border-bottom:1px solid var(--border);white-space:nowrap;font-size:11px;text-transform:uppercase;letter-spacing:.04em;}
+  td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:middle;}
+  tr:hover td{background:#FAFBFD;}
+  td.name{font-weight:600;max-width:180px;}
+  td a.ext{font-family:'IBM Plex Mono',monospace;font-size:11.5px;}
+  .empty-cell{color:#C7CBD3;}
+  .badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;font-family:'IBM Plex Mono',monospace;}
+  .badge.done{background:var(--ok-soft);color:#146134;}
+  .badge.pending{background:#F1F2F5;color:var(--text-soft);}
+  .badge.scraping{background:var(--info-soft);color:#1B5A73;}
+  .badge.failed{background:var(--danger-soft);color:#8C231A;}
+  .empty-state{padding:36px 10px;text-align:center;color:var(--text-soft);font-size:13.5px;}
+  .table-scroll{overflow-x:auto;}
+
+  /* saved lists table */
+  .lists-table td{font-size:12.5px;}
+  .lists-table .actions-cell{display:flex;gap:6px;flex-wrap:wrap;}
+  .lists-table button{padding:5px 10px;font-size:11.5px;}
+  .niche-tag{font-size:11px;background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:12px;}
+
+  /* modal */
+  .modal-overlay{position:fixed;inset:0;background:rgba(20,23,28,.4);display:none;align-items:center;justify-content:center;z-index:50;}
+  .modal-overlay.show{display:flex;}
+  .modal{background:var(--surface);border-radius:12px;padding:22px;width:340px;max-width:90vw;box-shadow:0 12px 32px rgba(0,0,0,.18);}
+  .modal h3{margin:0 0 14px;font-size:15px;}
+  .modal label{font-size:12px;color:var(--text-soft);display:block;margin-bottom:5px;}
+  .modal input{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;margin-bottom:14px;}
+  .modal .modal-actions{display:flex;justify-content:flex-end;gap:8px;}
+
+  @media(max-width:880px){
+    .layout{grid-template-columns:1fr;}
+    aside.sidebar{position:static;}
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <header class="top">
+    <h1>Contact Scraper</h1>
+    <p>Import a business list, scrape public contact info, save and export the results.</p>
+  </header>
+
+  <aside class="sidebar">
+    <div class="panel">
+      <h2>Live Status</h2>
+      <div class="bar" id="bar">
+        <div class="seg-done" id="segDone" style="width:0%"></div>
+        <div class="seg-scraping" id="segScraping" style="width:0%"></div>
+        <div class="seg-failed" id="segFailed" style="width:0%"></div>
+        <div class="seg-pending" id="segPending" style="width:100%"></div>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="n" id="cTotal">0</div><div class="l">Total</div></div>
+        <div class="stat-card"><div class="n" id="cRequests">0</div><div class="l"><span class="dot requests"></span>Requests made</div></div>
+        <div class="stat-card"><div class="n" id="cDone">0</div><div class="l"><span class="dot done"></span>Done</div></div>
+        <div class="stat-card"><div class="n" id="cScraping">0</div><div class="l"><span class="dot scraping"></span>Scraping</div></div>
+        <div class="stat-card"><div class="n" id="cFailed">0</div><div class="l"><span class="dot failed"></span>Failed</div></div>
+        <div class="stat-card"><div class="n" id="cPending">0</div><div class="l"><span class="dot pending"></span>Pending</div></div>
+      </div>
+      <div class="safety-note" id="safetyNote">
+        Keeping it calm: <b id="safeConcurrency">–</b> request(s) at a time,
+        <b id="safeDelay">–</b>s gap between each — so target sites don't rate-limit or block you.
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Run</h2>
+
+      <div class="action">
+        <label>Import a CSV</label>
+        <input type="file" id="csvFile" accept=".csv" />
+        <button id="importBtn" class="full">Import</button>
+      </div>
+
+      <div class="action">
+        <label>Start scraping (blank = everything pending)</label>
+        <div class="row">
+          <input type="number" id="limitInput" min="1" placeholder="all" />
+          <button id="startBtn">Start</button>
+        </div>
+      </div>
+
+      <div class="action">
+        <button id="stopBtn" class="stop full" disabled>Stop scraping</button>
+      </div>
+
+      <div class="action">
+        <button id="resetBtn" class="danger full">Clear / reset working list</button>
+      </div>
+
+      <div class="msg" id="msg"></div>
+      <div class="job-hint" id="jobHint"></div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="panel">
+      <div class="panel-head">
+        <h2 id="resultsTitle" style="margin:0;">Current Results</h2>
+        <div class="breadcrumb" id="breadcrumb" style="display:none;">
+          Viewing saved list — <a id="backToLive">← back to live results</a>
+        </div>
+      </div>
+
+      <div class="save-form" id="saveForm">
+        <input type="text" id="saveName" placeholder="Name this list, e.g. Berlin Barbers — Batch 1" />
+        <input type="text" id="saveNiche" placeholder="Niche (optional)" />
+        <button id="saveListBtn" class="secondary">Save current list</button>
+      </div>
+
+      <div class="table-controls">
+        <input type="text" id="filterInput" placeholder="Filter by name…" />
+        <div class="right">
+          <button class="secondary" id="exportCsvBtn">Export CSV</button>
+          <button class="secondary" id="exportPdfBtn">Export PDF</button>
+          <button class="secondary" id="refreshBtn">Refresh</button>
+        </div>
+      </div>
+
+      <div class="table-scroll">
+        <table id="table">
+          <thead>
+            <tr>
+              <th>Business</th><th>Status</th><th>Email</th><th>Phone</th>
+              <th>LinkedIn</th><th>Facebook</th><th>Instagram</th><th>TikTok</th><th>Website</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <div class="empty-state" id="emptyState" style="display:none;">Nothing here yet. Import a CSV to get started.</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Saved Lists</h2>
+      <div class="table-scroll">
+        <table class="lists-table" id="listsTable">
+          <thead><tr><th>Name</th><th>Niche</th><th>Businesses</th><th>Saved</th><th>Actions</th></tr></thead>
+          <tbody id="listsBody"></tbody>
+        </table>
+        <div class="empty-state" id="listsEmpty" style="display:none;">No saved lists yet. Save your current results above once they look good.</div>
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<div class="modal-overlay" id="renameOverlay">
+  <div class="modal">
+    <h3>Rename saved list</h3>
+    <label>Name</label>
+    <input type="text" id="renameNameInput" />
+    <label>Niche</label>
+    <input type="text" id="renameNicheInput" />
+    <div class="modal-actions">
+      <button class="secondary" id="renameCancelBtn">Cancel</button>
+      <button id="renameSaveBtn">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let allBusinesses = [];
+let currentView = { mode: 'live', listId: null, items: [] };
+let pollTimer = null;
+let renameTargetId = null;
+
+function showMsg(text, ok){
+  const el = $('msg');
+  el.textContent = text;
+  el.className = 'msg show ' + (ok ? 'ok' : 'err');
+  setTimeout(()=>{ el.classList.remove('show'); }, 6000);
+}
+
+// ---------- status / stats ----------
+async function fetchStatus(){
+  try{
+    const res = await fetch('/scrape/status');
+    if(!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    renderStatus(data);
+    $('stopBtn').disabled = !data.job_running;
+    $('startBtn').disabled = data.job_running;
+    $('resetBtn').disabled = data.job_running;
+
+    if(data.job_running){
+      $('jobHint').textContent = data.stop_requested
+        ? 'Stopping — finishing the requests already in flight…'
+        : 'Scrape running — this page updates itself every few seconds.';
+      if(!pollTimer) pollTimer = setInterval(tick, 3000);
+    } else {
+      $('jobHint').textContent = '';
+      if(pollTimer){ clearInterval(pollTimer); pollTimer = null; }
+    }
+  }catch(e){
+    showMsg('Could not reach the status endpoint.', false);
+  }
+}
+
+function renderStatus(data){
+  const c = data.counts || {};
+  const total = c.total || 0, done = c.done || 0, scraping = c.scraping || 0,
+        failed = c.failed || 0, pending = c.pending || 0;
+
+  $('cTotal').textContent = total;
+  $('cDone').textContent = done;
+  $('cScraping').textContent = scraping;
+  $('cFailed').textContent = failed;
+  $('cPending').textContent = pending;
+  $('cRequests').textContent = data.requests_made || 0;
+  $('safeConcurrency').textContent = data.concurrency;
+  $('safeDelay').textContent = data.delay_seconds;
+
+  if(total === 0){
+    $('segDone').style.width = '0%'; $('segScraping').style.width = '0%';
+    $('segFailed').style.width = '0%'; $('segPending').style.width = '100%';
+  } else {
+    $('segDone').style.width = (done/total*100) + '%';
+    $('segScraping').style.width = (scraping/total*100) + '%';
+    $('segFailed').style.width = (failed/total*100) + '%';
+    $('segPending').style.width = (pending/total*100) + '%';
+  }
+}
+
+// ---------- live businesses table ----------
+async function fetchBusinesses(){
+  try{
+    const res = await fetch('/businesses');
+    if(!res.ok) throw new Error(await res.text());
+    allBusinesses = await res.json();
+    if(currentView.mode === 'live') renderTable();
+  }catch(e){ /* status call already surfaces connectivity errors */ }
+}
+
+function linkOrDash(url){
+  if(!url) return '<span class="empty-cell">—</span>';
+  return `<a class="ext" href="${url}" target="_blank" rel="noopener">Open ↗</a>`;
+}
+
+function renderTable(){
+  const source = currentView.mode === 'live' ? allBusinesses : currentView.items;
+  const filter = $('filterInput').value.trim().toLowerCase();
+  const rows = source.filter(b => !filter || (b.business_name||'').toLowerCase().includes(filter));
+  const tbody = $('tbody');
+
+  if(source.length === 0){
+    $('emptyState').style.display = 'block';
+    $('table').style.display = 'none';
+    return;
+  }
+  $('emptyState').style.display = 'none';
+  $('table').style.display = '';
+
+  tbody.innerHTML = rows.map(b => `
+    <tr>
+      <td class="name">${b.business_name || ''}</td>
+      <td><span class="badge ${b.scrape_status || 'pending'}">${b.scrape_status || 'pending'}</span></td>
+      <td>${b.email ? `<a href="mailto:${b.email}">${b.email}</a>` : '<span class="empty-cell">—</span>'}</td>
+      <td class="mono">${b.phone_scraped || b.phone || '<span class="empty-cell">—</span>'}</td>
+      <td>${linkOrDash(b.linkedin)}</td>
+      <td>${linkOrDash(b.facebook)}</td>
+      <td>${linkOrDash(b.instagram)}</td>
+      <td>${linkOrDash(b.tiktok)}</td>
+      <td>${linkOrDash(b.website)}</td>
+    </tr>
+  `).join('');
+}
+
+$('filterInput').addEventListener('input', renderTable);
+
+// ---------- import / scrape / stop / reset ----------
+$('importBtn').addEventListener('click', async () => {
+  const file = $('csvFile').files[0];
+  if(!file){ showMsg('Choose a CSV file first.', false); return; }
+  const fd = new FormData();
+  fd.append('file', file);
+  $('importBtn').disabled = true;
+  try{
+    const res = await fetch('/import-csv', {method:'POST', body: fd});
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.detail || 'Import failed');
+    const skippedNote = data.skipped ? ` (${data.skipped} row(s) skipped — no business name found)` : '';
+    showMsg(`Imported ${data.imported} businesses.${skippedNote}`, true);
+    await tick();
+  }catch(e){ showMsg(e.message, false); }
+  finally{ $('importBtn').disabled = false; }
+});
+
+$('startBtn').addEventListener('click', async () => {
+  const limit = $('limitInput').value;
+  const qs = limit ? `?limit=${encodeURIComponent(limit)}` : '';
+  $('startBtn').disabled = true;
+  try{
+    const res = await fetch('/scrape/start' + qs, {method:'POST'});
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.detail || 'Could not start scrape');
+    showMsg(data.status === 'already_running' ? 'A scrape is already running.' : 'Scrape started.', data.status !== 'already_running');
+    await tick();
+  }catch(e){ showMsg(e.message, false); }
+});
+
+$('stopBtn').addEventListener('click', async () => {
+  $('stopBtn').disabled = true;
+  try{
+    const res = await fetch('/scrape/stop', {method:'POST'});
+    const data = await res.json();
+    showMsg(data.status === 'stopping' ? 'Stopping — in-flight requests will finish first.' : 'No scrape was running.', true);
+    await tick();
+  }catch(e){ showMsg('Could not send stop request.', false); }
+});
+
+$('resetBtn').addEventListener('click', async () => {
+  if(!confirm('Clear the current working list? Saved lists are not affected, but anything not saved will be gone.')) return;
+  try{
+    const res = await fetch('/reset', {method:'POST'});
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.detail || 'Could not reset');
+    showMsg('Working list cleared.', true);
+    currentView = { mode:'live', listId:null, items:[] };
+    $('breadcrumb').style.display = 'none';
+    $('saveForm').style.display = 'flex';
+    $('resultsTitle').textContent = 'Current Results';
+    await tick();
+  }catch(e){ showMsg(e.message, false); }
+});
+
+// ---------- export (works for both live results and a viewed saved list) ----------
+async function downloadBlob(url, filename){
+  const res = await fetch(url);
+  if(!res.ok){ showMsg('Export failed.', false); return; }
+  const blob = await res.blob();
+  const objUrl = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = objUrl; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(objUrl);
+}
+
+$('exportCsvBtn').addEventListener('click', () => {
+  if(currentView.mode === 'live') downloadBlob('/export?format=csv', 'scraped_contacts.csv');
+  else downloadBlob(`/lists/${currentView.listId}/export?format=csv`, 'saved_list.csv');
+});
+$('exportPdfBtn').addEventListener('click', () => {
+  if(currentView.mode === 'live') downloadBlob('/export?format=pdf', 'scraped_contacts.pdf');
+  else downloadBlob(`/lists/${currentView.listId}/export?format=pdf`, 'saved_list.pdf');
+});
+
+// ---------- save current list ----------
+$('saveListBtn').addEventListener('click', async () => {
+  const name = $('saveName').value.trim();
+  const niche = $('saveNiche').value.trim();
+  if(!name){ showMsg('Give this list a name first.', false); return; }
+  try{
+    const res = await fetch('/lists', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name, niche})});
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.detail || 'Could not save list');
+    showMsg(`Saved "${data.name}" (${data.count} businesses).`, true);
+    $('saveName').value = ''; $('saveNiche').value = '';
+    await fetchSavedLists();
+  }catch(e){ showMsg(e.message, false); }
+});
+
+// ---------- saved lists panel ----------
+async function fetchSavedLists(){
+  try{
+    const res = await fetch('/lists');
+    const lists = await res.json();
+    renderSavedLists(lists);
+  }catch(e){ /* quiet */ }
+}
+
+function renderSavedLists(lists){
+  const body = $('listsBody');
+  if(lists.length === 0){
+    $('listsEmpty').style.display = 'block';
+    $('listsTable').style.display = 'none';
+    return;
+  }
+  $('listsEmpty').style.display = 'none';
+  $('listsTable').style.display = '';
+  body.innerHTML = lists.map(l => `
+    <tr>
+      <td>${l.name}</td>
+      <td>${l.niche ? `<span class="niche-tag">${l.niche}</span>` : '<span class="empty-cell">—</span>'}</td>
+      <td class="mono">${l.count}</td>
+      <td class="mono">${(l.created_at || '').replace('T',' ').slice(0,16)}</td>
+      <td class="actions-cell">
+        <button class="secondary" onclick="viewSavedList(${l.id})">View</button>
+        <button class="secondary" onclick="openRename(${l.id}, '${l.name.replace(/'/g,"\\'")}', '${(l.niche||'').replace(/'/g,"\\'")}')">Rename</button>
+        <button class="secondary" onclick="downloadBlob('/lists/${l.id}/export?format=csv','${l.name.replace(/[^a-z0-9]/gi,'_')}.csv')">CSV</button>
+        <button class="secondary" onclick="downloadBlob('/lists/${l.id}/export?format=pdf','${l.name.replace(/[^a-z0-9]/gi,'_')}.pdf')">PDF</button>
+        <button class="danger" onclick="deleteSavedList(${l.id})">Delete</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function viewSavedList(id){
+  try{
+    const res = await fetch(`/lists/${id}`);
+    if(!res.ok) throw new Error('Could not load that list.');
+    const data = await res.json();
+    currentView = { mode: 'saved', listId: id, items: data.items };
+    $('resultsTitle').textContent = data.meta.name;
+    $('breadcrumb').style.display = 'block';
+    $('saveForm').style.display = 'none';
+    renderTable();
+    window.scrollTo({top: 0, behavior:'smooth'});
+  }catch(e){ showMsg(e.message, false); }
+}
+
+$('backToLive').addEventListener('click', () => {
+  currentView = { mode:'live', listId:null, items:[] };
+  $('breadcrumb').style.display = 'none';
+  $('saveForm').style.display = 'flex';
+  $('resultsTitle').textContent = 'Current Results';
+  renderTable();
+});
+
+function openRename(id, name, niche){
+  renameTargetId = id;
+  $('renameNameInput').value = name;
+  $('renameNicheInput').value = niche;
+  $('renameOverlay').classList.add('show');
+}
+$('renameCancelBtn').addEventListener('click', () => $('renameOverlay').classList.remove('show'));
+$('renameSaveBtn').addEventListener('click', async () => {
+  const name = $('renameNameInput').value.trim();
+  const niche = $('renameNicheInput').value.trim();
+  if(!name){ showMsg('Name cannot be empty.', false); return; }
+  try{
+    const res = await fetch(`/lists/${renameTargetId}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name, niche})});
+    if(!res.ok) throw new Error('Rename failed.');
+    $('renameOverlay').classList.remove('show');
+    showMsg('List renamed.', true);
+    if(currentView.mode === 'saved' && currentView.listId === renameTargetId) $('resultsTitle').textContent = name;
+    await fetchSavedLists();
+  }catch(e){ showMsg(e.message, false); }
+});
+
+async function deleteSavedList(id){
+  if(!confirm('Delete this saved list? This cannot be undone.')) return;
+  try{
+    const res = await fetch(`/lists/${id}`, {method:'DELETE'});
+    if(!res.ok) throw new Error('Delete failed.');
+    if(currentView.mode === 'saved' && currentView.listId === id){
+      currentView = { mode:'live', listId:null, items:[] };
+      $('breadcrumb').style.display = 'none';
+      $('saveForm').style.display = 'flex';
+      $('resultsTitle').textContent = 'Current Results';
+      renderTable();
+    }
+    showMsg('List deleted.', true);
+    await fetchSavedLists();
+  }catch(e){ showMsg(e.message, false); }
+}
+
+$('refreshBtn').addEventListener('click', tick);
+
+async function tick(){
+  await fetchStatus();
+  await fetchBusinesses();
+  await fetchSavedLists();
+}
+
+tick();
+</script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "Xeven Lead MailTracker",
+  "version": "1.0.0",
+  "description": "Adds read/open tracking to emails you compose in Hostinger Webmail and Gmail, reporting into your Xeven Leads Contacted page.",
+  "permissions": ["storage"],
+  "host_permissions": ["https://mail.hostinger.com/*", "https://mail.google.com/*", "__BACKEND_URL__/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://mail.hostinger.com/*"],
+      "js": ["content-script-hostinger.js"],
+      "css": ["content-style-hostinger.css"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://mail.google.com/*"],
+      "js": ["content-script-gmail.js"],
+      "css": ["content-style-gmail.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "options_page": "options.html",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

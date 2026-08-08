@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Xeven Leads</title>
+<link rel="manifest" href="/manifest.json" />
+<link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
+<link rel="icon" type="image/png" sizes="48x48" href="/icons/favicon-48.png" />
+<meta name="theme-color" content="#12100e" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Xeven Leads" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=151" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<script src="vendor/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <div id="toastContainer" class="toast-container"></div>
+
+  <div id="installBanner" class="install-banner" style="display:none;">
+    <span id="installBannerIcon"><i class="bi bi-download"></i></span>
+    <span id="installBannerText">Install Xeven Leads for quicker access and a full-screen experience.</span>
+    <button type="button" id="installBannerActionBtn" class="small-btn">Install</button>
+    <button type="button" id="installBannerDismissBtn" class="install-banner-dismiss" title="Dismiss"><i class="bi bi-x"></i></button>
+  </div>
+
+  <div id="mobileBlockOverlay">
+    <div class="mobile-block-message">
+      <i class="bi bi-laptop"></i>
+      <p>The WebApp is not Mobile friendly, kindly use it with laptop or large screen.</p>
+      <span>- Xeven Leads</span>
+    </div>
+  </div>
+
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">◎</span>
+      <span class="brand-name">Xeven Leads</span>
+      <span class="version-tag" id="versionTag"></span>
+    </div>
+
+    <div class="topbar-right">
+      <div class="quota" id="quota">
+        <svg viewBox="0 0 40 40" class="quota-ring">
+          <circle cx="20" cy="20" r="17" class="quota-ring-track" />
+          <circle cx="20" cy="20" r="17" class="quota-ring-fill" id="quotaRingFill" />
+        </svg>
+        <div class="quota-text">
+          <span id="quotaRemaining">--</span>
+          <small>left today</small>
+        </div>
+      </div>
+      <span class="username-tag" id="usernameTag"></span>
+      <button id="headerNotifBtn" class="small-btn icon-btn-labeled header-notif-btn" title="Notifications">
+        <i class="bi bi-bell"></i>
+        <span class="unread-badge" id="headerNotifBadge" style="display:none;"></span>
+      </button>
+      <button id="themeShortcutBtn" class="small-btn icon-btn-labeled" title="Switch to light mode"><i class="bi bi-moon-stars-fill"></i></button>
+      <button id="logoutBtn" class="small-btn icon-btn-labeled" title="Log out"><i class="bi bi-power"></i></button>
+    </div>
+  </header>
+
+  <div id="notifPanelOverlay" class="notif-panel-overlay" style="display:none;">
+    <div class="notif-panel">
+      <div class="notif-panel-head">
+        <h3>Notifications</h3>
+        <div class="notif-panel-head-actions">
+          <button id="notifMarkAllReadBtn" class="icon-toggle-btn" title="Mark all read"><i class="bi bi-check2-all"></i></button>
+          <button id="notifPanelCloseBtn" class="icon-toggle-btn" title="Close"><i class="bi bi-x-lg"></i></button>
+        </div>
+      </div>
+      <div id="notifPanelList" class="notif-panel-list"></div>
+    </div>
+  </div>
+
+  <main class="layout">
+
+    <aside class="left-col" id="leftCol">
+      <button id="collapseToggleBtn" class="collapse-toggle" title="Collapse panel">‹</button>
+
+      <nav class="side-nav">
+        <div class="nav-section open" id="navSectionHunt">
+          <div class="nav-section-header-row">
+            <button class="nav-section-header" data-section="hunt">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <span class="nav-section-label">Hunt</span>
+              <span class="nav-caret">▾</span>
+            </button>
+            <button class="nav-section-refresh" data-refresh-section="hunt" title="Refresh Hunt data"><i class="bi bi-arrow-clockwise"></i></button>
+          </div>
+          <div class="nav-section-body">
+            <div class="nav-section-actions">
+              <button id="newHuntLeafBtn" class="nav-leaf nav-leaf-action">+ New Hunt</button>
+              <button id="newNicheBtnTree" class="nav-leaf nav-leaf-action">+ New Niche</button>
+            </div>
+            <div id="nichesTree" class="niches-tree nav-tree"></div>
+          </div>
+        </div>
+
+        <div class="nav-section" id="navSectionReachout">
+          <div class="nav-section-header-row">
+            <button class="nav-section-header" data-section="reachout">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v3a1 1 0 0 0 1 1h2l4 4V6L6 10H4a1 1 0 0 0-1 1Z"/><path d="M15 8a4 4 0 0 1 0 8M18 5a8 8 0 0 1 0 14"/></svg>
+              <span class="nav-section-label">Reach Out</span>
+              <span class="nav-caret">▾</span>
+            </button>
+            <button class="nav-section-refresh" data-refresh-section="reachout" title="Refresh Reach Out data"><i class="bi bi-arrow-clockwise"></i></button>
+          </div>
+          <div class="nav-section-body">
+            <p class="nav-hint">Niche → City → pipeline stage</p>
+            <div id="outreachTree" class="niches-tree nav-tree"></div>
+          </div>
+        </div>
+
+        <div class="nav-section" id="navSectionPinned">
+          <div class="nav-section-header-row">
+            <button class="nav-section-header" data-section="pinned">
+              <i class="bi bi-pin-angle-fill"></i>
+              <span class="nav-section-label">Pinned</span>
+              <span class="nav-caret">▾</span>
+            </button>
+            <button class="nav-section-refresh" data-refresh-section="pinned" title="Refresh Pinned data"><i class="bi bi-arrow-clockwise"></i></button>
+          </div>
+          <div class="nav-section-body">
+            <p class="nav-hint">Niche → City → pinned leads</p>
+            <div id="pinnedTree" class="niches-tree nav-tree"></div>
+          </div>
+        </div>
+
+        <div class="nav-section" id="navSectionContacted">
+          <div class="nav-section-header-row">
+            <button class="nav-section-header" data-section="contacted">
+              <i class="bi bi-envelope-check"></i>
+              <span class="nav-section-label">Contacted</span>
+              <span class="nav-caret">▾</span>
+              <span class="unread-badge" id="contactedUnreadBadge" style="display:none;"></span>
+            </button>
+            <button class="nav-section-refresh" data-refresh-section="contacted" title="Refresh Contacted data"><i class="bi bi-arrow-clockwise"></i></button>
+          </div>
+          <div class="nav-section-body">
+            <div class="nav-tree">
+            <div class="niche-block open" data-platform-node="hostinger">
+              <div class="niche-row" data-toggle-platform="hostinger">
+                <span class="niche-caret">▶</span>
+                <div class="niche-row-main">
+                  <i class="bi bi-envelope-fill"></i>
+                  <span class="niche-name">Hostinger</span>
+                  <span class="unread-badge" data-platform-badge="hostinger" style="display:none;"></span>
+                </div>
+              </div>
+              <div class="catchlog-list">
+                <div class="catchlog-row" data-goto-platform="hostinger" data-goto-view="tracking"><div class="catchlog-name"><i class="bi bi-list-ul"></i> Tracking</div></div>
+                <div class="catchlog-row" data-goto-platform="hostinger" data-goto-view="history"><div class="catchlog-name"><i class="bi bi-clock-history"></i> History</div></div>
+                <div class="catchlog-row" data-goto-platform="hostinger" data-goto-view="alerts">
+                  <div class="catchlog-name"><i class="bi bi-bell"></i> Alerts</div>
+                  <span class="unread-badge" data-platform-alerts-badge="hostinger" style="display:none;"></span>
+                </div>
+                <div class="catchlog-row" data-goto-platform="hostinger" data-goto-view="reports"><div class="catchlog-name"><i class="bi bi-graph-up"></i> Reports</div></div>
+                <div class="catchlog-row" data-goto-platform="hostinger" data-goto-view="campaigns"><div class="catchlog-name"><i class="bi bi-send-fill"></i> Auto Send</div></div>
+                <div class="catchlog-row" data-goto-platform="hostinger" data-goto-view="setup"><div class="catchlog-name"><i class="bi bi-gear-wide-connected"></i> Setup</div></div>
+              </div>
+            </div>
+            <div class="niche-block" data-platform-node="gmail">
+              <div class="niche-row" data-toggle-platform="gmail">
+                <span class="niche-caret">▶</span>
+                <div class="niche-row-main">
+                  <i class="bi bi-google"></i>
+                  <span class="niche-name">Gmail</span>
+                  <span class="unread-badge" data-platform-badge="gmail" style="display:none;"></span>
+                </div>
+              </div>
+              <div class="catchlog-list">
+                <div class="catchlog-row" data-goto-platform="gmail" data-goto-view="tracking"><div class="catchlog-name"><i class="bi bi-list-ul"></i> Tracking</div></div>
+                <div class="catchlog-row" data-goto-platform="gmail" data-goto-view="history"><div class="catchlog-name"><i class="bi bi-clock-history"></i> History</div></div>
+                <div class="catchlog-row" data-goto-platform="gmail" data-goto-view="alerts">
+                  <div class="catchlog-name"><i class="bi bi-bell"></i> Alerts</div>
+                  <span class="unread-badge" data-platform-alerts-badge="gmail" style="display:none;"></span>
+                </div>
+                <div class="catchlog-row" data-goto-platform="gmail" data-goto-view="reports"><div class="catchlog-name"><i class="bi bi-graph-up"></i> Reports</div></div>
+                <div class="catchlog-row" data-goto-platform="gmail" data-goto-view="setup"><div class="catchlog-name"><i class="bi bi-gear-wide-connected"></i> Setup</div></div>
+              </div>
+            </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="nav-section open" id="navSectionReports">
+          <div class="nav-section-header-row">
+            <button class="nav-section-header" id="navReportsBtn" data-section="reports">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg>
+              <span class="nav-section-label">Reports</span>
+            </button>
+            <button class="nav-section-refresh" data-refresh-section="reports" title="Refresh Reports data"><i class="bi bi-arrow-clockwise"></i></button>
+          </div>
+        </div>
+
+        <div class="nav-section" id="navSectionSettings">
+          <button class="nav-section-header" data-section="settings">
+            <i class="bi bi-gear"></i>
+            <span class="nav-section-label">Settings</span>
+            <span class="nav-caret">▾</span>
+          </button>
+          <div class="nav-section-body">
+            <button class="nav-leaf nav-leaf-action" data-goto="settings-api" id="navSettingsApi"><i class="bi bi-key"></i> Google Places API</button>
+            <button class="nav-leaf nav-leaf-action" data-goto="settings-gemini" id="navSettingsGemini"><i class="bi bi-stars"></i> Gemini AI</button>
+            <button class="nav-leaf nav-leaf-action" data-goto="settings-groq" id="navSettingsGroq"><i class="bi bi-lightning-charge-fill"></i> Groq AI</button>
+            <button class="nav-leaf nav-leaf-action" data-goto="settings-deepseek" id="navSettingsDeepseek"><i class="bi bi-cpu-fill"></i> DeepSeek AI</button>
+            <button class="nav-leaf nav-leaf-action" data-goto="settings-colors" id="navSettingsColors"><i class="bi bi-palette"></i> Colors</button>
+            <button class="nav-leaf nav-leaf-action" data-goto="settings-team" id="navSettingsTeam" style="display:none;"><i class="bi bi-people"></i> Team</button>
+            <button class="nav-leaf nav-leaf-action" data-goto="settings-account" id="navSettingsAccount"><i class="bi bi-person-gear"></i> Account Settings</button>
+            <button class="nav-leaf nav-leaf-action" data-goto="settings-limits" id="navSettingsLimits"><i class="bi bi-speedometer2"></i> Limits Usage</button>
+          </div>
+        </div>
+      </nav>
+    </aside>
+
+    <section class="content-area">
+
+      <!-- ---------- Hunt form (shown for "+ New Hunt") ---------- -->
+      <section class="panel hunt-form-panel view-hidden" id="huntFormPanel">
+        <h2>Load a search</h2>
+        <form id="searchForm">
+          <label>Niche / category</label>
+          <div class="theme-dropdown" id="nicheDropdown">
+            <button type="button" class="theme-dropdown-trigger" id="nicheDropdownTrigger">
+              <span id="nicheDropdownLabel">Select a niche…</span>
+              <span class="theme-dropdown-caret">▾</span>
+            </button>
+            <div class="theme-dropdown-panel" id="nicheDropdownPanel">
+              <div class="theme-dropdown-list" id="nicheDropdownList"></div>
+              <button type="button" class="theme-dropdown-new" id="nicheDropdownNewBtn">+ New niche</button>
+            </div>
+          </div>
+
+          <label>
+            Service keyword (for Google search)
+            <input type="text" id="keyword" placeholder="e.g. dentist, restaurant, gym" required />
+          </label>
+          <label>
+            Location
+            <input type="text" id="location" placeholder="e.g. Swabi, Pakistan" required />
+          </label>
+          <label>
+            Catch log name <small class="optional">(optional — defaults to the city name; ignored if you already hunted this niche+city before)</small>
+            <input type="text" id="catchLogName" placeholder="e.g. Swabi" />
+          </label>
+          <label>
+            Results wanted <small class="optional">(distinct businesses, duplicates auto-skipped)</small>
+            <input type="number" id="maxResults" value="20" min="1" max="60" />
+          </label>
+          <label class="checkbox-row">
+            <input type="checkbox" id="includeRatings" />
+            Include ratings &amp; review counts (uses Pro-tier API quota — costs more)
+          </label>
+          <button type="submit" id="huntBtn" class="primary-btn">Hunt for leads</button>
+          <p class="hint">Field notes: leave ratings off to stay inside the free Essentials quota. Same-name-and-website branches are auto-deduped. Hunting a niche+city you've already searched adds new businesses to that same catch log instead of creating a duplicate. Contact scraping is manual only — use the Scrape button on a catch log.</p>
+        </form>
+        <div id="searchStatus" class="search-status"></div>
+      </section>
+
+      <!-- ---------- Records board (Hunt cities and Reach Out statuses both render here) ---------- -->
+      <section class="panel board-panel view-hidden" id="boardPanel">
+
+        <div class="board-header">
+          <div class="board-header-row-top">
+            <div class="board-header-title-group">
+              <h2>Catch log</h2>
+              <div class="scope-line" id="scopeLine">Viewing: <strong>All records</strong></div>
+            </div>
+
+            <div class="board-header-actions">
+            <button id="legendInfoBtn" class="icon-toggle-btn" title="What do the status and needs colors mean?">
+              <i class="bi bi-info-circle"></i>
+            </button>
+
+            <button id="showAllRecordsBtn" class="icon-toggle-btn" title="Show all records (clear niche/city scope)">
+              <i class="bi bi-grid-3x3-gap"></i>
+            </button>
+
+            <button id="scrapeBtn" class="icon-toggle-btn" title="Scrape contact info (email, social links) for this catch log" style="display:none;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+            </button>
+
+            <button id="filtersToggleBtn" class="icon-toggle-btn" title="Show/hide filters">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </button>
+
+            <div class="export-menu" id="exportViewMenu">
+              <button class="icon-toggle-btn" data-action="toggle-export" title="Export current view">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              </button>
+              <div class="export-list">
+                <a href="#" data-export-view="csv">CSV</a>
+                <a href="#" data-export-view="xlsx">XLSX</a>
+                <a href="#" data-export-view="pdf">PDF</a>
+              </div>
+            </div>
+          </div>
+          </div>
+        </div>
+
+        <div class="scrape-panel" id="scrapePanel" style="display:none;">
+          <div class="scrape-panel-head">
+            <span class="scrape-panel-title">Contact scrape progress</span>
+            <div class="scrape-panel-actions">
+              <button id="scrapeStartBtn" class="small-btn primary-btn-outline">Start scraping</button>
+              <button id="scrapeRefreshBtn" class="small-btn">Refresh</button>
+              <button id="scrapeStopBtn" class="small-btn danger-btn" style="display:none;">Stop</button>
+            </div>
+          </div>
+          <div class="scrape-bar" id="scrapeBar">
+            <div class="scrape-seg scrape-seg-done" id="scrapeSegDone" style="width:0%"></div>
+            <div class="scrape-seg scrape-seg-scraping" id="scrapeSegScraping" style="width:0%"></div>
+            <div class="scrape-seg scrape-seg-failed" id="scrapeSegFailed" style="width:0%"></div>
+            <div class="scrape-seg scrape-seg-pending" id="scrapeSegPending" style="width:100%"></div>
+          </div>
+          <div class="scrape-stats">
+            <div class="scrape-stat"><span id="scrapeTotal">0</span><small>Total</small></div>
+            <div class="scrape-stat"><span id="scrapeRequests">0</span><small>Requests made</small></div>
+            <div class="scrape-stat"><span id="scrapeDone">0</span><small>Done</small></div>
+            <div class="scrape-stat"><span id="scrapeScraping">0</span><small>Scraping</small></div>
+            <div class="scrape-stat"><span id="scrapeFailed">0</span><small>Failed</small></div>
+            <div class="scrape-stat"><span id="scrapePending">0</span><small>Pending</small></div>
+          </div>
+          <div class="scrape-status-line" id="scrapeStatusLine"></div>
+        </div>
+
+        <div class="filters collapsed" id="boardFilters">
+          <div class="filter-search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="filter-search-icon"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="filterSearch" placeholder="Search…" />
+          </div>
+
+          <div class="theme-dropdown filter-dropdown icon-filter" id="quickNicheDropdown" title="Niche">
+            <button type="button" class="theme-dropdown-trigger" id="quickNicheDropdownTrigger">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="trigger-icon"><path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2.5 12.5V2.5h10l8.09 8.09a2 2 0 0 1 0 2.82Z"/></svg>
+              <span id="quickNicheDropdownLabel">Niche</span>
+              <span class="theme-dropdown-caret">▾</span>
+            </button>
+            <div class="theme-dropdown-panel" id="quickNicheDropdownPanel"></div>
+          </div>
+
+          <div class="theme-dropdown filter-dropdown icon-filter" id="quickCityDropdown" title="City">
+            <button type="button" class="theme-dropdown-trigger" id="quickCityDropdownTrigger">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="trigger-icon"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span id="quickCityDropdownLabel">City</span>
+              <span class="theme-dropdown-caret">▾</span>
+            </button>
+            <div class="theme-dropdown-panel" id="quickCityDropdownPanel"></div>
+          </div>
+
+          <div class="theme-dropdown filter-dropdown icon-filter" id="needDropdown" title="Need">
+            <button type="button" class="theme-dropdown-trigger" id="needDropdownTrigger">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="trigger-icon"><path d="m20.59 13.41-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82Z"/><circle cx="7" cy="7" r="1.2" fill="currentColor" stroke="none"/></svg>
+              <span id="needDropdownLabel">Need</span>
+              <span class="theme-dropdown-caret">▾</span>
+            </button>
+            <div class="theme-dropdown-panel" id="needDropdownPanel"></div>
+          </div>
+
+          <button type="button" id="inspectedFilterBtn" class="small-btn filter-toggle-btn" title="Show only inspected businesses">
+            <i class="bi bi-clipboard-check"></i> Inspected
+          </button>
+
+          <div class="theme-dropdown filter-dropdown icon-filter" id="sortDropdown" title="Sort">
+            <button type="button" class="theme-dropdown-trigger" id="sortDropdownTrigger">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="trigger-icon"><path d="M3 6h18M6 12h12M10 18h4"/></svg>
+              <span id="sortDropdownLabel">Sort</span>
+              <span class="theme-dropdown-caret">▾</span>
+            </button>
+            <div class="theme-dropdown-panel" id="sortDropdownPanel"></div>
+          </div>
+
+          <button id="clearScopeBtn" class="small-btn" style="display:none;">Show all records</button>
+          <button id="resetFiltersBtn" class="small-btn" title="Reset all filters"><i class="bi bi-x-circle"></i> Reset filters</button>
+        </div>
+
+        <div class="records-wrap" id="recordsWrap">
+          <div class="list-header">
+            <div class="col-sn">S/N</div>
+            <div class="col-business">Business</div>
+            <div class="col-city">City</div>
+            <div class="col-contact">Contact</div>
+            <div class="col-needs">Needs</div>
+            <div class="col-social">Social</div>
+            <div class="col-rating">Rating</div>
+            <div class="col-status">Status</div>
+            <div class="col-remove"></div>
+          </div>
+          <div id="recordsBody" class="records-body"></div>
+          <div id="emptyState" class="empty-state" style="display:none;">
+            No leads yet. Run a search to start filling the board.
+          </div>
+          <div class="pagination-row" id="paginationRow" style="display:none;">
+            <button id="prevPageBtn" class="small-btn">‹ Prev</button>
+            <span id="pageInfo" class="page-info"></span>
+            <button id="nextPageBtn" class="small-btn">Next ›</button>
+            <label class="page-size-label">
+              Per page
+              <select id="pageSizeSelect">
+                <option value="50">50</option>
+                <option value="100">100</option>
+                <option value="150">150</option>
+                <option value="200">200</option>
+                <option value="250">250</option>
+                <option value="300">300</option>
+              </select>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------- Reports page ---------- -->
+      <section class="panel reports-panel view-hidden" id="reportsPanel">
+        <div class="board-header">
+          <div>
+            <h2>Reports</h2>
+            <div class="scope-line">Overall pipeline summary, across every niche and city</div>
+          </div>
+          <div class="reports-filter-group">
+            <div class="theme-dropdown filter-dropdown icon-filter" id="reportsRangeDropdown" title="Date range">
+              <button type="button" class="theme-dropdown-trigger" id="reportsRangeDropdownTrigger">
+                <span id="reportsRangeDropdownLabel">1D</span>
+                <span class="theme-dropdown-caret">▾</span>
+              </button>
+              <div class="theme-dropdown-panel" id="reportsRangeDropdownPanel"></div>
+            </div>
+            <div class="theme-dropdown filter-dropdown icon-filter" id="reportsNicheDropdown" title="Niche">
+              <button type="button" class="theme-dropdown-trigger" id="reportsNicheDropdownTrigger">
+                <span id="reportsNicheDropdownLabel">All niches</span>
+                <span class="theme-dropdown-caret">▾</span>
+              </button>
+              <div class="theme-dropdown-panel" id="reportsNicheDropdownPanel"></div>
+            </div>
+            <div class="theme-dropdown filter-dropdown icon-filter" id="reportsCityDropdown" title="City">
+              <button type="button" class="theme-dropdown-trigger" id="reportsCityDropdownTrigger">
+                <span id="reportsCityDropdownLabel">All cities</span>
+                <span class="theme-dropdown-caret">▾</span>
+              </button>
+              <div class="theme-dropdown-panel" id="reportsCityDropdownPanel"></div>
+            </div>
+            <button type="button" id="reportsExportCsvBtn" class="small-btn" title="Export the current view as CSV"><i class="bi bi-filetype-csv"></i> CSV</button>
+            <button type="button" id="reportsExportPdfBtn" class="small-btn" title="Export the current view (including charts) as PDF"><i class="bi bi-filetype-pdf"></i> PDF</button>
+          </div>
+        </div>
+
+        <div class="reports-body">
+          <div class="reports-stat-grid" id="reportsStatGrid"></div>
+
+          <div class="reports-chart-card reports-line-card">
+            <h3>Status trend over time</h3>
+            <canvas id="reportsLineChart"></canvas>
+          </div>
+
+          <div class="reports-charts-row">
+            <div class="reports-chart-card">
+              <h3>Pipeline distribution</h3>
+              <canvas id="reportsPieChart"></canvas>
+            </div>
+            <div class="reports-chart-card">
+              <h3>Status breakdown</h3>
+              <canvas id="reportsDonutChart"></canvas>
+            </div>
+          </div>
+
+          <div class="reports-chart-card reports-line-card">
+            <h3>All statuses compared - over the selected time range</h3>
+            <canvas id="reportsStatusComparisonChart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------- Contacted: Hostinger Mail Setup ---------- -->
+      <section class="panel simple-panel view-hidden" id="contactedSetupView">
+        <div class="board-header">
+          <div>
+            <h2 id="contactedSetupTitle">Hostinger Mail Setup</h2>
+            <div class="scope-line" id="contactedSetupScopeLine">Track opens and clicks on emails you send from Hostinger Webmail - no manual config needed</div>
+          </div>
+        </div>
+        <div class="settings-body" id="contactedSetupBody">
+          <p class="hint">Loading…</p>
+        </div>
+      </section>
+
+      <!-- ---------- Contacted: Tracking ledger ---------- -->
+      <section class="panel simple-panel view-hidden" id="contactedTrackingView">
+        <div class="board-header">
+          <div class="board-header-row-top">
+            <div class="board-header-title-group">
+              <h2>Contacted</h2>
+              <div class="scope-line">Tracking</div>
+            </div>
+            <div class="board-header-actions">
+              <button type="button" id="contactedRefreshBtn" class="icon-toggle-btn" title="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
+            </div>
+          </div>
+        </div>
+        <div class="contacted-stats-row" id="contactedStatsRow"></div>
+        <div class="contacted-filters-row">
+          <input type="text" id="contactedSearchInput" placeholder="Search subject…" />
+          <input type="text" id="contactedRecipientInput" placeholder="Filter by recipient…" />
+          <button type="button" id="contactedDeleteSelectedBtn" class="small-btn danger-btn" style="display:none;">Delete selected</button>
+        </div>
+        <div class="contacted-table-wrap">
+          <table class="contacted-table" id="contactedTable">
+            <thead>
+              <tr>
+                <th style="width:28px;"><input type="checkbox" id="contactedSelectAll" /></th>
+                <th>Subject</th>
+                <th>Recipients</th>
+                <th>Status</th>
+                <th>Opens</th>
+                <th>Clicks</th>
+                <th>Sent</th>
+              </tr>
+            </thead>
+            <tbody id="contactedTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ---------- Contacted: History ---------- -->
+      <section class="panel simple-panel view-hidden" id="contactedHistoryView">
+        <div class="board-header">
+          <div>
+            <h2>Contacted</h2>
+            <div class="scope-line">History - every open and click, in order</div>
+          </div>
+        </div>
+        <div class="contacted-filters-row">
+          <select id="contactedHistoryTypeSelect">
+            <option value="">All events</option>
+            <option value="open">Opens only</option>
+            <option value="click">Clicks only</option>
+          </select>
+          <input type="text" id="contactedHistorySearchInput" placeholder="Search subject…" />
+        </div>
+        <div class="contacted-table-wrap">
+          <table class="contacted-table" id="contactedHistoryTable">
+            <thead>
+              <tr><th>Type</th><th>Subject</th><th>Recipients</th><th>Detail</th><th>When</th></tr>
+            </thead>
+            <tbody id="contactedHistoryTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ---------- Contacted: Reports ---------- -->
+      <section class="panel simple-panel view-hidden" id="contactedReportsView">
+        <div class="board-header">
+          <div>
+            <h2>Contacted</h2>
+            <div class="scope-line">Reports</div>
+          </div>
+          <div class="reports-filter-group" id="contactedReportsRangeGroup">
+            <button type="button" class="range-pill" data-range="1d">1D</button>
+            <button type="button" class="range-pill active" data-range="7d">7D</button>
+            <button type="button" class="range-pill" data-range="30d">30D</button>
+            <button type="button" class="range-pill" data-range="90d">90D</button>
+            <button type="button" class="range-pill" data-range="1y">1Y</button>
+          </div>
+        </div>
+        <div class="contacted-stats-row" id="contactedReportsStatsRow"></div>
+        <div class="reports-charts-grid">
+          <div class="reports-chart-card reports-line-card">
+            <h3>Opens &amp; clicks over time</h3>
+            <canvas id="contactedTimeseriesChart"></canvas>
+          </div>
+          <div class="reports-chart-card reports-line-card">
+            <h3>Engagement heatmap - day &amp; hour</h3>
+            <div id="contactedHeatmap" class="contacted-heatmap"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------- Contacted: Alerts ---------- -->
+      <section class="panel simple-panel view-hidden" id="contactedAlertsView">
+        <div class="board-header">
+          <div class="board-header-row-top">
+            <div class="board-header-title-group">
+              <h2>Contacted</h2>
+              <div class="scope-line">Alerts</div>
+            </div>
+            <div class="board-header-actions">
+              <button type="button" id="contactedMarkAllReadBtn" class="icon-toggle-btn" title="Mark all read"><i class="bi bi-check2-all"></i></button>
+            </div>
+          </div>
+        </div>
+        <div class="contacted-filters-row">
+          <select id="contactedAlertsTypeSelect">
+            <option value="">All</option>
+            <option value="open">Opens</option>
+            <option value="click">Clicks</option>
+          </select>
+          <label class="site-visuals-toggle" style="margin:0;"><input type="checkbox" id="contactedUnreadOnlyToggle" /> Unread only</label>
+        </div>
+        <div id="contactedAlertsList" class="contacted-alerts-list"></div>
+      </section>
+
+      <!-- ---------- Contacted: Auto Send campaigns (list) ---------- -->
+      <section class="panel simple-panel view-hidden" id="contactedCampaignsView">
+        <div class="board-header">
+          <div class="board-header-row-top">
+            <div class="board-header-title-group">
+              <h2>Contacted</h2>
+              <div class="scope-line">Auto Send - up to 100 emails/day, spaced 5-10 minutes apart</div>
+            </div>
+            <div class="board-header-actions">
+              <button type="button" id="contactedNewCampaignBtn" class="site-generate-btn"><i class="bi bi-plus-lg"></i> New Campaign</button>
+            </div>
+          </div>
+        </div>
+        <div id="contactedCampaignsList" class="campaigns-list"></div>
+      </section>
+
+      <!-- ---------- Contacted: Campaign detail ---------- -->
+      <section class="panel simple-panel view-hidden" id="contactedCampaignDetailView">
+        <div class="board-header">
+          <div class="board-header-row-top">
+            <div class="board-header-title-group">
+              <h2 id="campaignDetailTitle">Campaign</h2>
+              <div class="scope-line" id="campaignDetailScope"></div>
+            </div>
+            <div class="board-header-actions" id="campaignDetailActions"></div>
+          </div>
+        </div>
+        <div id="campaignDetailBody" class="campaign-detail-body"></div>
+      </section>
+
+      <!-- ---------- Settings: Google Places API page ---------- -->
+      <section class="panel settings-view view-hidden" id="settingsApiView">
+        <div class="board-header">
+          <div>
+            <h2>Google Places API</h2>
+            <div class="scope-line">Used for hunting - add one or more keys, test them, and pick which one is active</div>
+          </div>
+        </div>
+        <div class="settings-body">
+          <div id="apiKeysList" class="api-keys-list"></div>
+
+          <div class="api-key-add-row">
+            <input type="text" id="newKeyLabel" placeholder="Label (e.g. Personal, Client A)" autocomplete="off" />
+            <input type="text" id="newKeyValue" placeholder="AIza… paste new key here" autocomplete="off" spellcheck="false" />
+            <button id="settingsTestNewBtn" class="small-btn">Test</button>
+            <button id="settingsSaveNewBtn" class="primary-btn">Test &amp; Save</button>
+          </div>
+          <div class="settings-result" id="settingsResult" style="display:none;"></div>
+
+          <div class="settings-divider"></div>
+          <div id="settingsUsage-google_places"></div>
+        </div>
+      </section>
+
+      <!-- ---------- Settings: Gemini AI Keys page ---------- -->
+      <section class="panel settings-view view-hidden" id="settingsGeminiView">
+        <div class="board-header">
+          <div>
+            <h2>Gemini AI Keys</h2>
+            <div class="scope-line">Used for business deep-analysis and outreach content generation. Free tier available via Google AI Studio.</div>
+          </div>
+        </div>
+        <div class="settings-body">
+          <div id="geminiKeysList" class="api-keys-list"></div>
+
+          <div class="api-key-add-row">
+            <input type="text" id="newGeminiKeyLabel" placeholder="Label (e.g. Personal, Client A)" autocomplete="off" />
+            <input type="text" id="newGeminiKeyValue" placeholder="AIza… paste new Gemini key here" autocomplete="off" spellcheck="false" />
+            <button id="geminiTestNewBtn" class="small-btn">Test</button>
+            <button id="geminiSaveNewBtn" class="primary-btn">Test &amp; Save</button>
+          </div>
+          <div class="settings-result" id="geminiSettingsResult" style="display:none;"></div>
+
+          <div class="settings-divider"></div>
+          <p class="hint">Don't have a key yet? Get one free at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> - no credit card required.</p>
+          <div class="settings-divider"></div>
+          <div id="settingsUsage-gemini"></div>
+        </div>
+      </section>
+
+      <!-- ---------- Settings: Groq AI Keys page ---------- -->
+      <section class="panel settings-view view-hidden" id="settingsGroqView">
+        <div class="board-header">
+          <div>
+            <h2>Groq AI Keys</h2>
+            <div class="scope-line">Fast, generous free tier - tried first in the AI fallback chain for business analysis and content generation.</div>
+          </div>
+        </div>
+        <div class="settings-body">
+          <div id="groqKeysList" class="api-keys-list"></div>
+
+          <div class="api-key-add-row">
+            <input type="text" id="newGroqKeyLabel" placeholder="Label (e.g. Personal, Client A)" autocomplete="off" />
+            <input type="text" id="newGroqKeyValue" placeholder="gsk_… paste new Groq key here" autocomplete="off" spellcheck="false" />
+            <button id="groqTestNewBtn" class="small-btn">Test</button>
+            <button id="groqSaveNewBtn" class="primary-btn">Test &amp; Save</button>
+          </div>
+          <div class="settings-result" id="groqSettingsResult" style="display:none;"></div>
+
+          <div class="settings-divider"></div>
+          <p class="hint">Don't have a key yet? Get one free at <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a> - no credit card required.</p>
+          <div class="settings-divider"></div>
+          <div id="settingsUsage-groq"></div>
+        </div>
+      </section>
+
+      <!-- ---------- Settings: DeepSeek AI Keys page ---------- -->
+      <section class="panel settings-view view-hidden" id="settingsDeepseekView">
+        <div class="board-header">
+          <div>
+            <h2>DeepSeek AI Keys</h2>
+            <div class="scope-line">Free one-time token grant per account, then very low-cost pay-as-you-go - used as the last fallback in the AI chain.</div>
+          </div>
+        </div>
+        <div class="settings-body">
+          <div id="deepseekKeysList" class="api-keys-list"></div>
+
+          <div class="api-key-add-row">
+            <input type="text" id="newDeepseekKeyLabel" placeholder="Label (e.g. Personal, Client A)" autocomplete="off" />
+            <input type="text" id="newDeepseekKeyValue" placeholder="sk-… paste new DeepSeek key here" autocomplete="off" spellcheck="false" />
+            <button id="deepseekTestNewBtn" class="small-btn">Test</button>
+            <button id="deepseekSaveNewBtn" class="primary-btn">Test &amp; Save</button>
+          </div>
+          <div class="settings-result" id="deepseekSettingsResult" style="display:none;"></div>
+
+          <div class="settings-divider"></div>
+          <p class="hint">Don't have a key yet? Get one at <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener">platform.deepseek.com/api_keys</a> - new accounts get a free one-time token grant.</p>
+          <div class="settings-divider"></div>
+          <div id="settingsUsage-deepseek"></div>
+        </div>
+      </section>
+
+      <!-- ---------- Settings: Colors page ---------- -->
+      <section class="panel settings-view view-hidden" id="settingsColorsView">
+        <div class="board-header">
+          <div>
+            <h2>Colors &amp; theme</h2>
+            <div class="scope-line">Changes preview instantly - click Save to keep them on your account</div>
+          </div>
+        </div>
+        <div class="settings-body">
+          <div class="theme-mode-switch">
+            <button type="button" class="theme-mode-btn" data-mode="dark"><i class="bi bi-moon-stars"></i> Dark</button>
+            <button type="button" class="theme-mode-btn" data-mode="light"><i class="bi bi-sun"></i> Light</button>
+          </div>
+          <div class="theme-color-grid" id="themeColorGrid"></div>
+          <div class="settings-result" id="themeResult" style="display:none;"></div>
+          <div class="modal-actions settings-actions" style="justify-content:flex-start;">
+            <button id="themeResetBtn" class="small-btn danger-btn">Reset to default</button>
+            <button id="themeSaveBtn" class="primary-btn">Save</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------- Settings: Team page (admin only) ---------- -->
+      <section class="panel settings-view view-hidden" id="settingsTeamView">
+        <div class="board-header">
+          <div>
+            <h2>Team accounts</h2>
+            <div class="scope-line">Each member gets their own private workspace - niches, catch logs, leads, API keys</div>
+          </div>
+        </div>
+        <div class="settings-body">
+          <div id="usersList" class="api-keys-list"></div>
+
+          <div class="api-key-add-row">
+            <input type="text" id="newUsername" placeholder="Username" autocomplete="off" />
+            <input type="password" id="newUserPassword" placeholder="Password (6+ characters)" autocomplete="off" />
+            <button id="adminCreateBtn" class="primary-btn">Create account</button>
+          </div>
+          <label class="checkbox-row" style="margin-top:8px;">
+            <input type="checkbox" id="newUserIsAdmin" />
+            Make this account an admin too
+          </label>
+          <div class="settings-result" id="adminResult" style="display:none;"></div>
+        </div>
+      </section>
+
+      <!-- ---------- Settings: Account Settings page ---------- -->
+      <section class="panel settings-view view-hidden" id="settingsAccountView">
+        <div class="board-header">
+          <div>
+            <h2>Account Settings</h2>
+            <div class="scope-line">My profile, daily lead cap, backup &amp; restore, and your outreach signature</div>
+          </div>
+        </div>
+        <div class="settings-body">
+          <h3 class="settings-subheading">My profile</h3>
+          <p class="hint">Update your own username and/or password. Requires your current password to confirm.</p>
+          <label class="profile-field-label">
+            New username
+            <input type="text" id="profileNewUsername" placeholder="Leave blank to keep current username" />
+          </label>
+          <label class="profile-field-label">
+            New password
+            <input type="password" id="profileNewPassword" placeholder="Leave blank to keep current password" autocomplete="new-password" />
+          </label>
+          <label class="profile-field-label">
+            Current password <small class="optional">(required to confirm)</small>
+            <input type="password" id="profileCurrentPassword" placeholder="Enter your current password" autocomplete="current-password" />
+          </label>
+          <button id="profileSaveBtn" class="small-btn">Save profile changes</button>
+          <div class="settings-result" id="profileResult" style="display:none;"></div>
+
+          <div class="settings-divider"></div>
+
+          <h3 class="settings-subheading">Daily lead cap</h3>
+          <p class="hint">How many new leads you can hunt per day (default 300). This is per-account.</p>
+          <div class="daily-cap-row">
+            <input type="number" id="dailyCapInput" min="1" max="5000" />
+            <button id="dailyCapSaveBtn" class="small-btn">Save</button>
+          </div>
+
+          <div class="settings-divider"></div>
+
+          <h3 class="settings-subheading">Signature</h3>
+          <p class="hint">Appended to the end of every generated outreach message and every campaign email. Fully rich - bold/italic, links, images, and lists are all supported and will render as real formatting in sent emails.</p>
+
+          <div class="sig-editor-toolbar">
+            <button type="button" data-sig-cmd="bold" title="Bold"><i class="bi bi-type-bold"></i></button>
+            <button type="button" data-sig-cmd="italic" title="Italic"><i class="bi bi-type-italic"></i></button>
+            <button type="button" data-sig-cmd="underline" title="Underline"><i class="bi bi-type-underline"></i></button>
+            <span class="sig-toolbar-divider"></span>
+            <button type="button" data-sig-action="link" title="Insert link"><i class="bi bi-link-45deg"></i></button>
+            <button type="button" data-sig-action="image" title="Insert image (by URL)"><i class="bi bi-image"></i></button>
+            <button type="button" data-sig-cmd="insertUnorderedList" title="Bullet list"><i class="bi bi-list-ul"></i></button>
+            <span class="sig-toolbar-divider"></span>
+            <button type="button" data-sig-cmd="removeFormat" title="Clear formatting"><i class="bi bi-eraser"></i></button>
+            <button type="button" data-sig-action="toggle-source" title="Edit raw HTML" class="sig-toolbar-right"><i class="bi bi-code-slash"></i> HTML</button>
+          </div>
+          <div id="signatureEditor" class="sig-editor-surface" contenteditable="true"></div>
+          <textarea id="signatureSourceInput" class="sig-editor-surface sig-editor-source" style="display:none;" spellcheck="false"></textarea>
+
+          <div class="signature-actions-row">
+            <button id="signatureSaveBtn" class="small-btn">Save signature</button>
+            <button id="signatureResetBtn" class="small-btn">Reset to default</button>
+          </div>
+          <div class="settings-result" id="signatureResult" style="display:none;"></div>
+
+          <div class="settings-divider"></div>
+
+          <h3 class="settings-subheading">Default AI providers</h3>
+          <p class="hint">Which provider to pre-select for content generation and inspection - "Auto" tries Groq, then Gemini, then DeepSeek in order. You can still override this per-generation; this just sets the starting default.</p>
+          <div class="smtp-field-row">
+            <label class="site-field-label">Content generation
+              <select id="providerPrefContentSelect">
+                <option value="">Auto</option>
+                <option value="groq">Groq</option>
+                <option value="gemini">Gemini</option>
+                <option value="deepseek">DeepSeek</option>
+              </select>
+            </label>
+            <label class="site-field-label">Inspection
+              <select id="providerPrefInspectionSelect">
+                <option value="">Auto</option>
+                <option value="groq">Groq</option>
+                <option value="gemini">Gemini</option>
+                <option value="deepseek">DeepSeek</option>
+              </select>
+            </label>
+          </div>
+          <button id="providerPrefSaveBtn" class="small-btn">Save defaults</button>
+          <div class="settings-result" id="providerPrefResult" style="display:none;"></div>
+
+          <div class="settings-divider"></div>
+
+          <h3 class="settings-subheading">Backup &amp; restore</h3>
+          <p class="hint">Download everything in your account - niches, catch logs, leads, saved API keys (every provider), business analysis results, generated outreach content, theme, daily cap, page size, and signature - as one file. Re-importing merges into whatever's already there: it never deletes or overwrites your existing records or anything fresher than the backup, only adds what's new. <strong>The download includes your API keys in plain text</strong>, so store the file somewhere private.</p>
+          <div class="backup-restore-row">
+            <button id="backupExportBtn" class="small-btn"><i class="bi bi-download"></i> Export backup</button>
+            <label class="small-btn backup-import-label">
+              <i class="bi bi-upload"></i> Import backup
+              <input type="file" id="backupImportInput" accept="application/json" style="display:none;" />
+            </label>
+          </div>
+          <div class="settings-result" id="backupResult" style="display:none;"></div>
+        </div>
+      </section>
+
+      <!-- ---------- Settings: Limits Usage page ---------- -->
+      <section class="panel settings-view view-hidden" id="settingsLimitsView">
+        <div class="board-header">
+          <div>
+            <h2>Limits Usage</h2>
+            <div class="scope-line">What each API costs, this month's usage, and roughly how much free-tier room you have left</div>
+          </div>
+        </div>
+        <div class="settings-body" id="limitsUsageBody">
+          <p class="hint">Loading…</p>
+        </div>
+      </section>
+
+    </section>
+
+  </main>
+
+  <!-- Generic modal, reused for create/rename/delete-confirm across niches and catch logs -->
+  <!-- Status/Needs color-key popup, opened via the (i) icon in the Catch Log header -->
+  <div class="modal-overlay" id="legendOverlay" style="display:none;">
+    <div class="modal-box legend-modal-box">
+      <h3>What the colors mean</h3>
+      <div class="legend-modal-group">
+        <div class="legend-modal-group-title">Status</div>
+        <div class="legend-modal-item"><span class="legend-col-dot" style="background:#7fa8d9"></span>New</div>
+        <div class="legend-modal-item"><span class="legend-col-dot" style="background:#e0b355"></span>Shortlisted</div>
+        <div class="legend-modal-item"><span class="legend-col-dot" style="background:#ff6a3d"></span>Contacted</div>
+        <div class="legend-modal-item"><span class="legend-col-dot" style="background:#c586e0"></span>Engaged</div>
+        <div class="legend-modal-item"><span class="legend-col-dot" style="background:#4fd1c5"></span>Converted</div>
+        <div class="legend-modal-item"><span class="legend-col-dot" style="background:#7fb88a"></span>Won</div>
+        <div class="legend-modal-item"><span class="legend-col-dot" style="background:#d95d5d"></span>Rejected</div>
+      </div>
+      <div class="legend-modal-group">
+        <div class="legend-modal-group-title">Needs</div>
+        <div class="legend-modal-item"><i class="bi bi-globe" style="color:#d95d5d"></i>&nbsp;Website Design (no website found)</div>
+        <div class="legend-modal-item"><i class="bi bi-geo-alt-fill" style="color:#e0b355"></i>&nbsp;GMB Optimization</div>
+        <div class="legend-modal-item"><i class="bi bi-search" style="color:#7fa8d9"></i>&nbsp;Local SEO</div>
+        <div class="legend-modal-item"><i class="bi bi-star-fill" style="color:#7fb88a"></i>&nbsp;Review Generation</div>
+        <div class="legend-modal-item"><i class="bi bi-shield-check" style="color:#ff6a3d"></i>&nbsp;Reputation Management</div>
+        <div class="legend-modal-item" style="color:var(--text-muted); font-size:11.5px;">A greyed-out icon means that need isn't flagged for that business.</div>
+      </div>
+      <div class="legend-modal-group">
+        <div class="legend-modal-group-title">Other abbreviations</div>
+        <div class="legend-modal-item"><strong>RNP</strong>&nbsp;— Rating Not Pulled (ratings cost extra API quota, only fetched when "Include ratings" is checked on a hunt)</div>
+        <div class="legend-modal-item"><i class="bi bi-check-circle-fill" style="color:var(--good);"></i>&nbsp;Next to the trash icon — this business has been inspected and/or had outreach content generated</div>
+      </div>
+      <div class="modal-actions">
+        <button id="legendCloseBtn" class="small-btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalOverlay" style="display:none;">
+    <div class="modal-box">
+      <h3 id="modalTitle"></h3>
+      <p id="modalMessage" style="display:none;"></p>
+      <label id="modalInputWrap" style="display:none;">
+        <span id="modalInputLabel"></span>
+        <input type="text" id="modalInput" />
+      </label>
+      <div class="modal-actions">
+        <button id="modalCancelBtn" class="small-btn">Cancel</button>
+        <button id="modalConfirmBtn" class="primary-btn">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+
+
+  <script src="app.js?v=151"></script>
+  <script src="pwa-install.js"></script>
+</body>
+</html>

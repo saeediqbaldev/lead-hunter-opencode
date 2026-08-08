@@ -1,0 +1,26 @@
+{
+  "name": "leadgen-app",
+  "version": "1.0.0",
+  "description": "Client-hunting lead generation tool (Google Places based) - V1",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "archiver": "^7.0.1",
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.3.0",
+    "dotenv": "^16.4.5",
+    "exceljs": "^4.4.0",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "form-data": "^4.0.0",
+    "imapflow": "^1.0.164",
+    "node-fetch": "^2.7.0",
+    "nodemailer": "^6.9.14",
+    "pdfkit": "^0.15.0",
+    "session-file-store": "^1.5.0"
+  }
+}

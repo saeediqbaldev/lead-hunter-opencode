@@ -1,0 +1,24 @@
+services:
+  leadgen-app:
+    build: ./leadgen-app
+    ports:
+      - '3000:3000'
+    volumes:
+      - './leadgen-app/data:/app/data'
+    environment:
+      - 'SESSION_SECRET=${SESSION_SECRET}'
+      - 'SCRAPER_SERVICE_URL=http://scraper:8000'
+      - 'SCRAPER_API_SECRET=${SCRAPER_API_SECRET}'
+      - 'GOOGLE_PLACES_API_KEY=${GOOGLE_PLACES_API_KEY}'
+      - DAILY_LEAD_CAP=100
+    depends_on:
+      - scraper
+    restart: unless-stopped
+
+  scraper:
+    build: ./scraper-service
+    volumes:
+      - './scraper-service/data:/app/data'
+    environment:
+      - 'SCRAPER_API_SECRET=${SCRAPER_API_SECRET}'
+    restart: unless-stopped

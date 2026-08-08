@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Xeven Leads — Sign in</title>
+<link rel="manifest" href="/manifest.json" />
+<link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
+<link rel="icon" type="image/png" sizes="48x48" href="/icons/favicon-48.png" />
+<meta name="theme-color" content="#12100e" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=151" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+  body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+  .login-panel { width: 340px; }
+  .login-brand { display: flex; align-items: baseline; gap: 10px; margin-bottom: 24px; justify-content: center; }
+  .login-panel form { display: flex; flex-direction: column; gap: 14px; }
+  .login-error { color: var(--danger); font-family: var(--font-mono); font-size: 13px; min-height: 18px; }
+</style>
+</head>
+<body>
+  <div id="installBanner" class="install-banner" style="display:none;">
+    <span id="installBannerIcon"><i class="bi bi-download"></i></span>
+    <span id="installBannerText">Install Xeven Leads for quicker access and a full-screen experience.</span>
+    <button type="button" id="installBannerActionBtn" class="small-btn">Install</button>
+    <button type="button" id="installBannerDismissBtn" class="install-banner-dismiss" title="Dismiss"><i class="bi bi-x"></i></button>
+  </div>
+
+  <div class="panel login-panel">
+    <div class="login-brand">
+      <span class="brand-mark">◎</span>
+      <span class="brand-name">Xeven Leads</span>
+    </div>
+    <form id="loginForm">
+      <label>
+        Username
+        <input type="text" id="username" autocomplete="username" required />
+      </label>
+      <label>
+        Password
+        <input type="password" id="password" autocomplete="current-password" required />
+      </label>
+      <button type="submit" id="loginBtn" class="primary-btn">Sign in</button>
+      <div class="login-error" id="loginError"></div>
+    </form>
+  </div>
+  <script>
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById("loginBtn");
+      const errEl = document.getElementById("loginError");
+      btn.disabled = true;
+      errEl.textContent = "";
+      try {
+        const res = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: document.getElementById("username").value,
+            password: document.getElementById("password").value,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Login failed");
+        window.location.href = "/";
+      } catch (err) {
+        errEl.textContent = err.message;
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
+  <script src="pwa-install.js"></script>
+</body>
+</html>
