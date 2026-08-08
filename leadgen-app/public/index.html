@@ -212,6 +212,7 @@
             <button class="nav-leaf nav-leaf-action" data-goto="settings-gemini" id="navSettingsGemini"><i class="bi bi-stars"></i> Gemini AI</button>
             <button class="nav-leaf nav-leaf-action" data-goto="settings-groq" id="navSettingsGroq"><i class="bi bi-lightning-charge-fill"></i> Groq AI</button>
             <button class="nav-leaf nav-leaf-action" data-goto="settings-deepseek" id="navSettingsDeepseek"><i class="bi bi-cpu-fill"></i> DeepSeek AI</button>
+            <button class="nav-leaf nav-leaf-action" data-goto="settings-opencode" id="navSettingsOpencode"><i class="bi bi-robot"></i> OpenCode Agent</button>
             <button class="nav-leaf nav-leaf-action" data-goto="settings-colors" id="navSettingsColors"><i class="bi bi-palette"></i> Colors</button>
             <button class="nav-leaf nav-leaf-action" data-goto="settings-team" id="navSettingsTeam" style="display:none;"><i class="bi bi-people"></i> Team</button>
             <button class="nav-leaf nav-leaf-action" data-goto="settings-account" id="navSettingsAccount"><i class="bi bi-person-gear"></i> Account Settings</button>
@@ -737,6 +738,19 @@
         </div>
       </section>
 
+      <!-- ---------- Settings: OpenCode Agent page ---------- -->
+      <section class="panel settings-view view-hidden" id="settingsOpencodeView">
+        <div class="board-header">
+          <div>
+            <h2>OpenCode Agent</h2>
+            <div class="scope-line">Server-level AI provider - routes requests through a headless opencode server. No per-user keys here; the opencode container holds its own model keys in its environment.</div>
+          </div>
+        </div>
+        <div class="settings-body">
+          <div id="opencodeStatus" class="api-keys-empty">Loading…</div>
+        </div>
+      </section>
+
       <!-- ---------- Settings: Colors page ---------- -->
       <section class="panel settings-view view-hidden" id="settingsColorsView">
         <div class="board-header">
@@ -847,7 +861,7 @@
           <div class="settings-divider"></div>
 
           <h3 class="settings-subheading">Default AI providers</h3>
-          <p class="hint">Which provider to pre-select for content generation and inspection - "Auto" tries Groq, then Gemini, then DeepSeek in order. You can still override this per-generation; this just sets the starting default.</p>
+          <p class="hint">Which provider to pre-select for content generation and inspection - "Auto" tries Groq, then Gemini, then DeepSeek, then OpenCode (if configured) in order. You can still override this per-generation; this just sets the starting default.</p>
           <div class="smtp-field-row">
             <label class="site-field-label">Content generation
               <select id="providerPrefContentSelect">
@@ -855,6 +869,7 @@
                 <option value="groq">Groq</option>
                 <option value="gemini">Gemini</option>
                 <option value="deepseek">DeepSeek</option>
+                <option value="opencode">OpenCode</option>
               </select>
             </label>
             <label class="site-field-label">Inspection
@@ -863,6 +878,7 @@
                 <option value="groq">Groq</option>
                 <option value="gemini">Gemini</option>
                 <option value="deepseek">DeepSeek</option>
+                <option value="opencode">OpenCode</option>
               </select>
             </label>
           </div>

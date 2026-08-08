@@ -143,7 +143,7 @@ router.get("/ai-provider-preferences", (req, res) => {
 });
 
 router.put("/ai-provider-preferences", (req, res) => {
-  const VALID = ["", "groq", "gemini", "deepseek"];
+  const VALID = ["", "groq", "gemini", "deepseek", "opencode"];
   const { contentProvider, inspectionProvider } = req.body || {};
   if (contentProvider !== undefined && !VALID.includes(contentProvider)) return res.status(400).json({ error: "Invalid contentProvider" });
   if (inspectionProvider !== undefined && !VALID.includes(inspectionProvider)) return res.status(400).json({ error: "Invalid inspectionProvider" });
@@ -176,6 +176,21 @@ function toPublicRow(row) {
     createdAt: row.created_at,
   };
 }
+
+// GET /api/settings/opencode-status -> whether the OpenCode agent server
+// is configured (OPENCODE_URL) and reachable, plus which model it will use.
+// OpenCode is server-level, so there is no per-user key management for it.
+router.get("/opencode-status", asyncHandler(async (req, res) => {
+  const opencode = require("../opencodeClient");
+  const health = await opencode.health();
+  res.json({
+    configured: opencode.isConfigured(),
+    healthy: health.ok && health.healthy,
+    version: health.version || null,
+    error: health.error || null,
+    model: `${opencode.resolveModel().providerID}/${opencode.resolveModel().modelID}`,
+  });
+}));
 
 // Shared CRUD logic for a provider's API keys - both Google Places and
 // Gemini keys go through the exact same save/test/activate/delete/list

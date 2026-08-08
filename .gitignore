@@ -1,0 +1,12 @@
+# OS junk
+.DS_Store
+
+# Runtime data (SQLite DB, sessions, generated sites, etc.)
+leadgen-app/data/
+scraper-service/data/
+
+# Dependencies
+node_modules/
+
+# Secrets - never commit real keys
+.env

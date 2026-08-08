@@ -1,7 +1,8 @@
 # Lead Hunter — combined deployment
 
 This folder contains **both services** the app needs, wired together with
-one `docker-compose.yml` at this top level:
+one `docker-compose.yml` at this top level (plus an optional OpenCode agent
+server as a 4th AI provider):
 
 ```
 lead-hunter/
@@ -10,7 +11,7 @@ lead-hunter/
 └── scraper-service/     <- the Python contact-scraper (has its own Dockerfile)
 ```
 
-Deploying both as one Compose stack (instead of two separate Coolify
+Deploying all as one Compose stack (instead of two separate Coolify
 resources) is what makes `http://scraper:8000` reliably resolve from the
 Node app on every redeploy — no more chasing random container names.
 
@@ -21,14 +22,37 @@ Node app on every redeploy — no more chasing random container names.
 3. **Base Directory**: `/`
 4. **Docker Compose Location**: `/docker-compose.yml`
 5. **Domains**: set your public domain on the `leadgen-app` service only —
-   leave the `scraper` service's domain field empty (it should never be
-   public).
+   leave the `scraper` and `opencode` services' domain fields empty (they
+   should never be public).
 6. **Environment Variables** tab, add:
    - `SESSION_SECRET` — any long random string
    - `SCRAPER_API_SECRET` — any long random string (different from the above)
    - `GOOGLE_PLACES_API_KEY` — optional; only used as a fallback if a user
      hasn't added their own key inside the app yet
+   - `GROQ_API_KEY`, `DEEPSEEK_API_KEY` — **optional**; only needed if you
+     want OpenCode as a provider. Passed to the `opencode` container so it
+     can run models. (If you leave them empty, OpenCode is skipped and the
+     app works exactly as before.)
+   - `OPENCODE_SERVER_PASSWORD` — any long random string; must be set on
+     both `leadgen-app` and `opencode` (the compose file wires it to both).
+   - `OPENCODE_MODEL` — optional; `provider/model` the opencode server runs
+     for app requests (default `groq/openai/gpt-oss-120b`).
 7. **Deploy.**
+
+### About the OpenCode agent (optional)
+
+- OpenCode is free open-source software — it does **not** provide "API
+  keys" of its own. It consumes the LLM keys you already have
+  (`GROQ_API_KEY`, `DEEPSEEK_API_KEY`, …) which you pass to its container
+  via environment variables.
+- The app uses it through `opencode serve`'s HTTP API. Requests use the
+  model named by `OPENCODE_MODEL` with agent tools disabled, so it behaves
+  like a plain text/JSON engine — matching how the app already calls Groq
+  and DeepSeek directly.
+- You can verify it's working from the app: **Settings → OpenCode Agent**
+  shows server status and the model in use.
+- First boot may take a moment while the opencode container downloads its
+  runtime. `docker compose logs opencode` shows its startup output.
 
 ## Push to a fresh repo
 

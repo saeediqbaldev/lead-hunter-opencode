@@ -296,6 +296,44 @@ setupAiProviderKeySection({
   getKeyHint: "Add one below - get one at platform.deepseek.com/api_keys.",
 });
 
+// ---------- OpenCode agent server (server-level, no per-user key) ----------
+const navSettingsOpencode = document.getElementById("navSettingsOpencode");
+
+async function loadOpencodeStatus() {
+  const statusEl = document.getElementById("opencodeStatus");
+  if (!statusEl) return;
+  statusEl.innerHTML = `<div class="api-keys-empty">Loading…</div>`;
+  try {
+    const res = await api("/api/settings/opencode-status");
+    const data = await res.json();
+    if (!data.configured) {
+      statusEl.innerHTML = `<div class="api-keys-empty">OpenCode server is not configured. Set <code>OPENCODE_URL</code> on the leadgen-app service and add the <code>opencode</code> service to your docker-compose to enable it. Until then it's skipped everywhere.</div>`;
+      return;
+    }
+    const dot = data.healthy
+      ? '<span style="color:var(--good)">● Online</span>'
+      : '<span style="color:var(--danger)">● Unreachable</span>';
+    statusEl.innerHTML = `
+      <div class="api-key-row active">
+        <div class="api-key-info">
+          <span class="api-key-label">OpenCode server</span>
+          <span class="api-key-masked">${data.error ? escapeHtml(data.error) : dot}</span>
+          <span class="api-key-active-badge">model: ${data.model}</span>
+          ${data.version ? `<span class="api-key-usage">v${data.version}</span>` : ""}
+        </div>
+      </div>
+      <p class="hint" style="margin-top:12px;">OpenCode holds its own model keys (passed as env vars like <code>GROQ_API_KEY</code> to the opencode container). Pick "OpenCode" as the AI provider for content generation or inspection to route those requests through it. If it's unreachable it's skipped in the Auto fallback chain (Groq → Gemini → DeepSeek → OpenCode).</p>`;
+  } catch (err) {
+    statusEl.innerHTML = `<div class="api-keys-empty">Could not load OpenCode status.</div>`;
+  }
+}
+
+navSettingsOpencode.addEventListener("click", () => {
+  state.lastNavSection = "settings";
+  setContentView("settings-opencode");
+  loadOpencodeStatus();
+});
+
 async function loadApiKeys() {
   apiKeysList.innerHTML = `<div class="api-keys-empty">Loading…</div>`;
   try {
@@ -1209,6 +1247,7 @@ async function showCampaignCreationForm() {
         <option value="groq">Groq</option>
         <option value="gemini">Gemini</option>
         <option value="deepseek">DeepSeek</option>
+        <option value="opencode">OpenCode</option>
       </select>
     </label>
 
@@ -1363,6 +1402,7 @@ function showCampaignEditForm(campaign) {
         <option value="groq" ${campaign.ai_provider === "groq" ? "selected" : ""}>Groq</option>
         <option value="gemini" ${campaign.ai_provider === "gemini" ? "selected" : ""}>Gemini</option>
         <option value="deepseek" ${campaign.ai_provider === "deepseek" ? "selected" : ""}>DeepSeek</option>
+        <option value="opencode" ${campaign.ai_provider === "opencode" ? "selected" : ""}>OpenCode</option>
       </select>
     </label>
     <label class="site-visuals-toggle"><input type="checkbox" data-edit-cta ${campaign.cta ? "checked" : ""}> Weave in a clear call-to-action</label>
@@ -2713,6 +2753,7 @@ function setContentView(view) {
     "settings-gemini": document.getElementById("settingsGeminiView"),
     "settings-groq": document.getElementById("settingsGroqView"),
     "settings-deepseek": document.getElementById("settingsDeepseekView"),
+    "settings-opencode": document.getElementById("settingsOpencodeView"),
     "settings-colors": document.getElementById("settingsColorsView"),
     "settings-team": document.getElementById("settingsTeamView"),
     "settings-account": document.getElementById("settingsAccountView"),
@@ -3942,6 +3983,7 @@ const AI_PROVIDER_OPTIONS = [
   { value: "groq", label: "Groq", icon: "bi-lightning-charge-fill" },
   { value: "gemini", label: "Gemini", icon: "bi-stars" },
   { value: "deepseek", label: "DeepSeek", icon: "bi-cpu-fill" },
+  { value: "opencode", label: "OpenCode", icon: "bi-robot" },
 ];
 
 function closeAllLeadExpansions() {
@@ -3982,6 +4024,7 @@ const PROVIDER_ICON_INFO = {
   groq: { icon: "bi-lightning-charge-fill", label: "Groq" },
   gemini: { icon: "bi-stars", label: "Gemini" },
   deepseek: { icon: "bi-cpu-fill", label: "DeepSeek" },
+  opencode: { icon: "bi-robot", label: "OpenCode" },
 };
 function providerHintIconHtml(provider) {
   if (!provider || !PROVIDER_ICON_INFO[provider]) return "";

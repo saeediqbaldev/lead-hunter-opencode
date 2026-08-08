@@ -6,6 +6,30 @@ GMB optimization, local SEO, etc.), and gives you a board to shortlist and
 track them. Capped at 100 new leads/day by default to stay inside Google's
 free API quota.
 
+## What's in this V16
+
+**OpenCode agent server integration as a 4th AI provider.**
+
+- OpenCode (https://opencode.ai) runs as a headless sidecar
+  (`opencode serve`) next to the app, holding its own model keys in its
+  environment - so there is no per-user API key entry for it. The app
+  talks to it over HTTP (see `src/opencodeClient.js`).
+- "OpenCode" appears as an AI provider option everywhere the others do:
+  the per-generation content picker, inspection, campaign create/edit, and
+  the "Default AI providers" account preferences. It also joins the Auto
+  fallback chain as the last resort: Groq -> Gemini -> DeepSeek -> OpenCode
+  (only if `OPENCODE_URL` is configured).
+- New **Settings -> OpenCode Agent** page shows whether the server is
+  configured and reachable, its version, and which model it runs.
+- Model is chosen server-side via `OPENCODE_MODEL` (e.g.
+  `groq/openai/gpt-oss-120b` or `deepseek/deepseek-v4-flash`). Requests are
+  sent with tools disabled, so opencode behaves like a deterministic
+  text/JSON engine matching the same contract as the direct Groq/DeepSeek
+  clients - the app still does its own website/SEO fetching and feeds the
+  results into the prompt.
+- If `OPENCODE_URL` is empty, nothing changes: the app works exactly as
+  before with Groq/Gemini/DeepSeek.
+
 ## What's in this V15.1
 Progress on the latest round - items 1, 2, 3, and 8 complete and
 verified; items 4, 5, 6, 7, 9, 10 still ahead.

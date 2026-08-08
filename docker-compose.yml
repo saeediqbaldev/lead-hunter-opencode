@@ -11,8 +11,12 @@ services:
       - 'SCRAPER_API_SECRET=${SCRAPER_API_SECRET}'
       - 'GOOGLE_PLACES_API_KEY=${GOOGLE_PLACES_API_KEY}'
       - DAILY_LEAD_CAP=100
+      - 'OPENCODE_URL=http://opencode:4096'
+      - 'OPENCODE_SERVER_PASSWORD=${OPENCODE_SERVER_PASSWORD}'
+      - 'OPENCODE_MODEL=${OPENCODE_MODEL:-groq/openai/gpt-oss-120b}'
     depends_on:
       - scraper
+      - opencode
     restart: unless-stopped
 
   scraper:
@@ -21,4 +25,18 @@ services:
       - './scraper-service/data:/app/data'
     environment:
       - 'SCRAPER_API_SECRET=${SCRAPER_API_SECRET}'
+    restart: unless-stopped
+
+  # OpenCode agent server (https://opencode.ai) - headless HTTP API that
+  # the leadgen-app uses as an AI provider. It holds its own model keys:
+  # pass the same Groq/DeepSeek keys you already use, and it will run the
+  # chosen model (see OPENCODE_MODEL on leadgen-app) for business analysis
+  # and outreach content generation. No keys are ever stored in the app.
+  opencode:
+    image: ghcr.io/anomalyco/opencode:latest
+    command: serve --hostname 0.0.0.0 --port 4096
+    environment:
+      - 'GROQ_API_KEY=${GROQ_API_KEY}'
+      - 'DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}'
+      - 'OPENCODE_SERVER_PASSWORD=${OPENCODE_SERVER_PASSWORD}'
     restart: unless-stopped
