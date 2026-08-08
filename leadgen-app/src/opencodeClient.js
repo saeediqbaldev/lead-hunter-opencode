@@ -17,6 +17,34 @@
 
 const DEFAULT_TIMEOUT_MS = 90000;
 
+// The opencode message API's `tools` field is a map of tool/permission name
+// to whether it's enabled; it is converted into allow/deny session permission
+// rules. Denying every standard tool keeps these calls as deterministic
+// plain-text generation - the model cannot enter an agent tool-loop, and a
+// headless server never blocks waiting for a permission prompt. (Note: the
+// field must be an OBJECT, not an array - Effect's schema rejects an empty
+// array with a 400 Bad Request.)
+const DENIED_TOOLS = {
+  bash: false,
+  edit: false,
+  write: false,
+  apply_patch: false,
+  webfetch: false,
+  websearch: false,
+  task: false,
+  todo: false,
+  todowrite: false,
+  skill: false,
+  question: false,
+  plan: false,
+  lsp: false,
+  read: false,
+  glob: false,
+  grep: false,
+  invalid: false,
+  external_directory: false,
+};
+
 // OPENCODE_MODEL is "provider/model" (e.g. "groq/openai/gpt-oss-120b" or
 // "deepseek/deepseek-v4-flash"). Defaults to the same Groq model the app
 // already uses directly.
@@ -56,7 +84,9 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = DEFAULT_TIMEOUT_M
       let message = `OpenCode server returned HTTP ${res.status}.`;
       try {
         const parsed = JSON.parse(body);
-        if (parsed?.error?.message) message = parsed.error.message;
+        // Effect HttpApi errors are { name: "BadRequest", data: { message } };
+        // the OpenAI-compatible clients use { error: { message } }. Handle both.
+        message = parsed?.error?.message || parsed?.data?.message || message;
       } catch {
         // keep generic message
       }
@@ -107,8 +137,9 @@ async function generateText(prompt, { jsonMode, timeoutMs } = {}) {
           headers,
           body: JSON.stringify({
             model: resolveModel(),
-            // Empty tools array = plain text generation, no agent tool loop.
-            tools: [],
+            // Deny every standard tool = plain text generation, no agent
+            // tool loop (and no hanging on permission prompts).
+            tools: DENIED_TOOLS,
             parts: [{ type: "text", text: prompt }],
           }),
         },
